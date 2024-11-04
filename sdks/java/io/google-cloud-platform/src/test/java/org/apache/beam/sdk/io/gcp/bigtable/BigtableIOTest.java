@@ -36,6 +36,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.lessThan;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -2126,5 +2127,65 @@ public class BigtableIOTest {
     // is not ran.
     thrown.expect(PipelineRunMissingException.class);
     p.apply(readChangeStream);
+  }
+
+  @Test
+  public void testChangeStreamDisplayDataSimple() {
+    BigtableIO.ReadChangeStream readChangeStream =
+        BigtableIO.readChangeStream()
+            .withProjectId("project")
+            .withInstanceId("instance")
+            .withTableId("table");
+
+    DisplayData displayData = DisplayData.from(readChangeStream);
+
+    assertThat(displayData, hasDisplayItem("changeStreamProjectId", "project"));
+    assertThat(displayData, hasDisplayItem("changeStreamInstanceId", "instance"));
+    assertThat(displayData, hasDisplayItem("changeStreamTableId", "table"));
+
+    // Spot checking metadata table info are unset
+    assertThat(displayData, not(hasDisplayItem("metadataTableProjectId")));
+    assertThat(displayData, not(hasDisplayItem("metadataTableTableId")));
+  }
+
+  @Test
+  public void testChangeStreamDisplayDataAll() {
+    BigtableIO.ReadChangeStream readChangeStream =
+        BigtableIO.readChangeStream()
+            .withProjectId("project")
+            .withInstanceId("instance")
+            .withAppProfileId("appProfile")
+            .withTableId("table")
+            .withChangeStreamName("changeStreamName")
+            .withStartTime(Instant.ofEpochSecond(1000))
+            .withEndTime(Instant.ofEpochSecond(5000))
+            .withExistingPipelineOptions(BigtableIO.ExistingPipelineOptions.RESUME_OR_NEW)
+            .withMetadataTableProjectId("metadataProject")
+            .withMetadataTableInstanceId("metadataInstance")
+            .withMetadataTableTableId("metadataTable")
+            .withMetadataTableAppProfileId("metadataAppProfile")
+            .withBacklogReplicationAdjustment(Duration.standardMinutes(5))
+            .withReadChangeStreamTimeout(Duration.standardSeconds(30));
+
+    DisplayData displayData = DisplayData.from(readChangeStream);
+
+    assertThat(displayData, hasDisplayItem("changeStreamProjectId", "project"));
+    assertThat(displayData, hasDisplayItem("changeStreamInstanceId", "instance"));
+    assertThat(displayData, hasDisplayItem("changeStreamTableId", "table"));
+    assertThat(displayData, hasDisplayItem("changeStreamAppProfileId", "appProfile"));
+    assertThat(displayData, hasDisplayItem("startTime", Instant.ofEpochSecond(1000)));
+    assertThat(displayData, hasDisplayItem("endTime", Instant.ofEpochSecond(5000)));
+    // We want to explicitly match that existingPipelineOptions has the string value.
+    assertThat(
+        displayData,
+        hasDisplayItem(allOf(hasKey("existingPipelineOptions"), hasValue("RESUME_OR_NEW"))));
+    assertThat(displayData, hasDisplayItem("metadataTableProjectId", "metadataProject"));
+    assertThat(displayData, hasDisplayItem("metadataTableInstanceId", "metadataInstance"));
+    assertThat(displayData, hasDisplayItem("metadataTableTableId", "metadataTable"));
+    assertThat(displayData, hasDisplayItem("metadataTableAppProfileId", "metadataAppProfile"));
+    assertThat(
+        displayData, hasDisplayItem("backlogReplicationAdjustment", Duration.standardMinutes(5)));
+    assertThat(
+        displayData, hasDisplayItem("readChangeStreamTimeout", Duration.standardSeconds(30)));
   }
 }

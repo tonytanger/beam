@@ -2370,6 +2370,62 @@ public class BigtableIO {
     }
 
     @Override
+    public void populateDisplayData(DisplayData.Builder builder) {
+      super.populateDisplayData(builder);
+
+      builder.addIfNotNull(
+          DisplayData.item("changeStreamProjectId", getBigtableConfig().getProjectId())
+              .withLabel("Stream changes from project"));
+      builder.addIfNotNull(
+          DisplayData.item("changeStreamInstanceId", getBigtableConfig().getInstanceId())
+              .withLabel("Stream changes from instance"));
+      builder.addIfNotNull(
+          DisplayData.item("changeStreamAppProfileId", getBigtableConfig().getAppProfileId())
+              .withLabel("Stream changes with app profile"));
+      builder.addIfNotNull(
+          DisplayData.item("changeStreamTableId", getTableId())
+              .withLabel("Stream changes from table"));
+
+      builder.addIfNotNull(
+          DisplayData.item("startTime", getStartTime()).withLabel("Start time of the stream"));
+      builder.addIfNotNull(
+          DisplayData.item("endTime", getEndTime()).withLabel("End time of the stream"));
+      builder.addIfNotNull(
+          DisplayData.item("changeStreamName", getChangeStreamName())
+              .withLabel("Metadata row prefix"));
+      builder.addIfNotNull(
+          DisplayData.item(
+                  "existingPipelineOptions",
+                  getExistingPipelineOptions() != null
+                      ? String.valueOf(getExistingPipelineOptions())
+                      : null)
+              .withLabel("When reusing change stream name, the action to be taken"));
+
+      builder.addIfNotNull(
+          DisplayData.item(
+                  "metadataTableProjectId", getMetadataTableBigtableConfig().getProjectId())
+              .withLabel("Metadata table project"));
+      builder.addIfNotNull(
+          DisplayData.item(
+                  "metadataTableInstanceId", getMetadataTableBigtableConfig().getInstanceId())
+              .withLabel("Metadata table instance"));
+      builder.addIfNotNull(
+          DisplayData.item(
+                  "metadataTableAppProfileId", getMetadataTableBigtableConfig().getAppProfileId())
+              .withLabel("Metadata table app profile"));
+      builder.addIfNotNull(
+          DisplayData.item("metadataTableTableId", getMetadataTableId())
+              .withLabel("Metadata table table id"));
+
+      builder.addIfNotNull(
+          DisplayData.item("backlogReplicationAdjustment", getBacklogReplicationAdjustment())
+              .withLabel("Adjust backlog calculation duration"));
+      builder.addIfNotNull(
+          DisplayData.item("readChangeStreamTimeout", getReadChangeStreamTimeout())
+              .withLabel("Timeout duration of ReadChangeStream API"));
+    }
+
+    @Override
     public void validate(PipelineOptions options) {
       if (getBigtableConfig().getValidate()) {
         try (BigtableChangeStreamAccessor bigtableChangeStreamAccessor =
